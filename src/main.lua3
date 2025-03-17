@@ -1,0 +1,145 @@
+local fun = require("fun")
+local inspect = require("inspect")
+-- local M = require("moses")
+
+local opens = { '{', '(', '[' }
+local closes = { '}', ')', ']' }
+local unpack = table.unpack or unpack
+
+
+-- для группировки скобок в массивы
+---@param r table
+---@param c string
+local function groupByBrackets(r, c)
+    local le = r[#r]
+
+    -- если открывается скобка
+    if M.contains(opens, c) then
+        if M.isArray(le) then
+            groupByBrackets(le, c)
+            return r
+        else
+            return M.push(r, { c })
+        end
+    end
+
+    -- если любой другой символ
+    if not M.isArray(le) then
+        return M.push(r, c)
+    end
+
+    -- если скобка закрылась в последнем массиве
+    local lle = le[#le]
+    if M.isString(lle) and M.contains(closes, lle) then
+        return M.push(r, c)
+    end
+
+    groupByBrackets(le, c)
+    return r
+end
+
+local file = io.open('test.php', 'r')
+if file ~= nil then
+    local function readSymbolFromFile(_file)
+        local c = _file:read(1)
+        return c, c
+    end
+
+    fun.each(print, fun.foldl(groupByBrackets, {}, fun.iter(readSymbolFromFile, file)))
+
+    file:close()
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- local M = require("moses")
+--
+-- local opens = M.constant({ '{', '(', '[' })
+-- local closes = M.constant({ '}', ')', ']' })
+-- local punct = M.constant({ '}', ')', ']' })
+-- local unpack = table.unpack or unpack
+--
+--
+-- function last(r)
+--     return r[#r]
+-- end
+--
+-- local function cmp(rrTest, cTest, r, c)
+--     -- local ee = function(...)
+--     --     -- print(debug.traceback())
+--     --     -- print('---')
+--     --     print(inspect({ r, c }))
+--     --     return true
+--     -- end
+--     print(inspect({ r[#r], c }))
+--
+--     -- return ee(r, c)
+--     -- return M.overArgs(ee, rrTest, cTest)(r, c)
+--     return M.operator.land(rrTest(r[#r]), cTest(c))
+-- end
+--
+-- local function callUnpack(f, t)
+--     return f(unpack(t))
+-- end
+--
+-- local function appendToLastElement(r, c)
+--     r[#r] = r[#r] .. c
+--     return r
+-- end
+--
+-- -- для группировки по словам
+-- local groupByWords = function(r, c)
+--     print(inspect({ r, c }))
+--     return M.cond(M.map({
+--         { { M.isNil, M.constant(true) },                                      M.push },
+--         { { M.bind(M.operator.eq, ' '), M.bind(M.operator.eq, ' ') },         appendToLastElement },
+--         { { M.bind(M.operator.eq, '<'), M.bind(M.operator.eq, '?') },         appendToLastElement },
+--         { { M.bind(M.operator.eq, '$'), M.bind2(string.match, '^%w+$') },     appendToLastElement },
+--         { { M.bind2(string.match, '^%w+$'), M.bind2(string.match, '^%w+$') }, appendToLastElement },
+--         { { M.constant(true), M.constant(true) },                             M.push },
+--     }, M.bind(callUnpack, M.overArgs(M.pack, function(f)
+--         -- return M.overArgs(M.bindn(cmp, unpack(f)), last)
+--         return M.bindn(cmp, unpack(f))
+--     end))))(r, c)
+-- end
+--
+-- local file = io.open('test.php', 'r')
+-- if file ~= nil then
+--     local function readSymbolFromFile(_file)
+--         local c = _file:read(1)
+--         if c ~= nil then return c, _file end
+--     end
+--
+--     local result = M.chain(M.unfold(readSymbolFromFile, file))
+--         :reduce(groupByWords, {})
+--         :reduce(groupByBrackets, {})
+--         :value()
+--
+--     file:close()
+--
+--     print(inspect(result))
+-- end
