@@ -1,9 +1,10 @@
----@class Class
-local Class = {}
+---@class Namespace
+local Namespace = {}
 
-function Class:new(parent, content)
+function Namespace:new(parent, namespace, content)
     local obj = {
         parent = parent,
+        namespace = namespace,
         content = content
     }
 
@@ -16,12 +17,12 @@ end
 ---@param index integer
 ---@param area Area
 ---@return Area
-function Class.detect(token, index, area)
-    if token ~= 'class' then
+function Namespace.detect(token, index, area)
+    if token ~= 'namespace' then
         return area
     end
 
     return area
 end
 
-return Class
+return Namespace
